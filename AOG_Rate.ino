@@ -73,7 +73,7 @@ void loop()
   currentTime = millis();
   unsigned int time = currentTime;
 
-  if (currentTime - lastTime >= LOOP_TIME)
+  if ((currentTime - lastTime >= LOOP_TIME) && (relay & 255)) //read the flowmeter every 50 ms IFF there is at least one section on
   {   
     dT = currentTime - lastTime;
     lastTime = currentTime;
@@ -131,8 +131,8 @@ void loop()
 
     oldtime1 = millis(); //preserve the last time we checked and changed valve
     
-    if (count++ > 20) //maybe make the 20 a variable to introduce rate "smoothing" ?
-    {
+    //if (count++ > 20) //maybe make the 20 a variable to introduce rate "smoothing" ?
+    //{
       //Send to agopenGPS, once per second
       Serial.print(dT); 
       Serial.print(",");
@@ -146,7 +146,7 @@ void loop()
       
       Serial.flush();   // flush out buffer
       count = 0;
-    }
+   // }
     
     if (watchdogTimer++ > 10)
     {
