@@ -7,7 +7,7 @@
 
   #define pressure_Pin A3
   #define valvePin A4
-  #define flowinPin A2 //bound to digital pin 2 and interrupt 0
+  #define flowinPin 2 //bound to digital pin 2 and interrupt 0
   #define valvedirection A5
   #define RELAY1_PIN 5  //PD5
   #define RELAY2_PIN 6  //PD6
