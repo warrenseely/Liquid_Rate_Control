@@ -1,8 +1,7 @@
-# Flow_Control_Slave
+# AOG_Rate
 The arduino nano code for liquid rate control
 
-Autosteer_Flow_Master contains the AgOpenGps arduino code with a couple minor modifications to send speeed and relay data to a slave arduino nano.
-The slave computes a liquid application rate by reading a flowmeter, adjusts a valve to hit the target rate.
-Slave then sends back the actual current rate in liters/hec to the master.
+AOG_Rate contains the AgOpenGps arduino code which computes "liters per minute" by reading a flowmeter, adjusts a valve to hit the target rate, then sends back the actual current rate in liters/min to the master.
+Also reads a pressure transducer and calculates a bar pressure of the system.
 
-Slave file utilizes a generic pulse reading class written by Torriem to help compute the liquid flow rate.
+File utilizes a generic pulse reading class written by Torriem to help compute the liters per minute.
