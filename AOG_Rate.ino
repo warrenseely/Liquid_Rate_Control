@@ -106,11 +106,10 @@ void loop()
      * 4.5 volts is an analog reading of 921  (rounded) for 175 PSI
       * Pressure (PSI) = ( Analog Reading - 102 ) * 175 /  ( 921 - 102 )*/
       
-    //pressure = (analogRead(pressure_Pin) - 102) * 175 / (921 - 102); //read the pressure sensor and convert the input to a usable form
-    pressure = (analogRead(pressure_Pin) - 102) * 0.230; //(pressure reading - minimum pressure reading) * V/bar
+     pressure = ((analogRead(pressure_Pin) * (5 / 1024)) - 0.5) / 230; //read pressure and convert to a voltage ratio then set relative to sensor "0" voltage, then scale by sensitivity
 
     //MAYBE MOVE THIS CALCULATION TO AOG SINCE EASIER TO GET VARIABLES??
-    litersPerMinPressure = reference_Flow * (sqrt(pressure) / sqrt(reference_pressure)); //see your preferred spray nozzle chart for the reference flow 
+    //litersPerMinPressure = reference_Flow * (sqrt(pressure) / sqrt(reference_pressure)); //see your preferred spray nozzle chart for the reference flow 
                                                                                          //and pressure for your chosen nozzle. All units in metric.  
                                                                                          
     digitalWrite(valvePin, 0); //make sure valve is shut off while we change directions to avoid damage to H-bridge
@@ -142,6 +141,8 @@ void loop()
       Serial.print(litersPerMinFlow); //liters per minute rate being output
       Serial.print(","); 
       Serial.println(accumulatedVolume); 
+      //Serial.print(","); 
+      //Serial.println(pressure);
       
       Serial.flush();   // flush out buffer
       count = 0;
