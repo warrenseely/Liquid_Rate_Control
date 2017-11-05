@@ -1,19 +1,25 @@
 #include <ppmreader.h>
   
   #define LED_PIN 13   
-  #define   DIR_PIN    12  //PB4
-  #define   PWM_PIN    11  //PB3  
-  #define WORKSW_PIN 4  //PD4
+  //#define   DIR_PIN    12  //PB4
+  //#define   PWM_PIN    11  //PB3  
+  //#define WORKSW_PIN A4  //PD4
 
   #define pressure_Pin A3
-  #define valvePin A4
+  #define valvePin 3
+  #define valvedirection 4
   #define flowinPin 2 //bound to digital pin 2 and interrupt 0
-  #define valvedirection A5
-  #define RELAY1_PIN 5  //PD5
-  #define RELAY2_PIN 6  //PD6
-  #define RELAY3_PIN 7  //PD7
-  #define RELAY4_PIN 8  //PB0
-  #define RELAY5_PIN 9  //PB1
+ 
+  
+  #define RELAY1_PIN 5  //
+  #define RELAY2_PIN 6  //
+  #define RELAY3_PIN 7  //
+  #define RELAY4_PIN 8  //
+  #define RELAY5_PIN 9
+  #define RELAY6_PIN 10
+  #define RELAY7_PIN 11
+  #define RELAY8_PIN 12  
+  
    
   //loop time variables in microseconds
   const unsigned int LOOP_TIME = 50; //20hz 
@@ -22,7 +28,8 @@
   unsigned int dT = 50000;
   unsigned int count = 0;
   unsigned int watchdogTimer = 0;
-
+  int flag = 0, rate_delay = 0;
+  
   //program flow
   bool isDataFound = false, isSettingFound = false;
   int header = 0, tempHeader = 0, temp;
@@ -54,9 +61,9 @@ void setup()
   pinMode(RELAY3_PIN, OUTPUT); //configure RELAY3 for output //Pin 7
   pinMode(RELAY4_PIN, OUTPUT); //configure RELAY4 for output //Pin 8
   pinMode(RELAY5_PIN, OUTPUT); //configure RELAY5 for output //Pin 9
-  //pinMode(RELAY6_PIN, OUTPUT); //configure RELAY6 for output //Pin 10
-  //pinMode(RELAY7_PIN, OUTPUT); //configure RELAY7 for output //Pin A4
-  //pinMode(RELAY8_PIN, OUTPUT); //configure RELAY8 for output //Pin A5
+  pinMode(RELAY6_PIN, OUTPUT); //configure RELAY6 for output //Pin 10
+  pinMode(RELAY7_PIN, OUTPUT); //configure RELAY7 for output //Pin A4
+ pinMode(RELAY8_PIN, OUTPUT); //configure RELAY8 for output //Pin A5
   
   //set up communication  
   Serial.begin(38400); 
@@ -73,29 +80,31 @@ void loop()
   currentTime = millis();
   unsigned int time = currentTime;
 
-  if ((currentTime - lastTime >= LOOP_TIME) && (relay & 255)) //read the flowmeter every 50 ms IFF there is at least one section on
+  if (currentTime - lastTime >= LOOP_TIME) //read flow every 50 ms  
   {   
     dT = currentTime - lastTime;
     lastTime = currentTime;
 
     SetRelays(); //turn on off sections
-    
-    int number_nozzles = 0; //local variable reset every time enter calculations
-    
-    //find sections on and calculate # nozzles on
-    //#nozzles on each section of our sprayers
-    if(bitRead(relay,0)) number_nozzles += 3;
-    else if(bitRead(relay,1)) number_nozzles += 9;
-    else if(bitRead(relay,2)) number_nozzles += 9;
-    else if(bitRead(relay,3)) number_nozzles += 9;
-    else if(bitRead(relay,4)) number_nozzles += 9;
-    else if(bitRead(relay,5)) number_nozzles += 9;
-    else if(bitRead(relay,6)) number_nozzles += 9;
-    else if(bitRead(relay,7)) number_nozzles += 3;
-    
-    litersPerMinFlow = PPMReader.get_ppm() / calibrationFactor; //get the liters per minute since last checked
-    adjust_time = kp * abs(rateSetPoint - litersPerMinFlow); //time to adjust valve is (kp milliseconds) * (difference in target rate vs applied rate)
 
+    if(!flag && (relay & 255) && (millis() - rate_delay >= 3000)) //IF we are not coming directly from an "all off" condition and at least one relay is on
+    {
+      litersPerMinFlow = PPMReader.get_ppm() / calibrationFactor; //get the liters per minute since last checked
+      adjust_time = kp * abs(rateSetPoint - litersPerMinFlow); //time to adjust valve is (kp milliseconds) * (difference in target rate vs applied rate)
+    }
+    else if (relay == 0) //all relays off
+    {
+      flag = 1; //set flag so we know we are coming from an "all off" condition
+      adjust_time = 0; //no need for valve movement when all are off
+    }
+    else
+    {
+      rate_delay = millis(); //preserve the current time since want to wait a couple seconds after flipping all sections off for rate to stabilize
+      adjust_time = 0;
+      flag = 0; //reset flag
+    }
+    
+    
     //need to convert the 0-1023 reading from AnalogRead to a psi reading
     //Raven and Ag Leader sensors are 16mv/psi OR 230mv/bar
     //Dickey-John sensors are 45mv/psi OR 650 mv/bar
@@ -106,7 +115,7 @@ void loop()
      * 4.5 volts is an analog reading of 921  (rounded) for 175 PSI
       * Pressure (PSI) = ( Analog Reading - 102 ) * 175 /  ( 921 - 102 )*/
       
-     pressure = ((analogRead(pressure_Pin) * (5 / 1024)) - 0.5) / 230; //read pressure and convert to a voltage ratio then set relative to sensor "0" voltage, then scale by sensitivity
+    pressure = ((analogRead(pressure_Pin) * (5 / 1024)) - 0.5) / 230; //read pressure and convert to a voltage ratio then set relative to sensor "0" voltage, then scale by sensitivity
 
     //MAYBE MOVE THIS CALCULATION TO AOG SINCE EASIER TO GET VARIABLES??
     //litersPerMinPressure = reference_Flow * (sqrt(pressure) / sqrt(reference_pressure)); //see your preferred spray nozzle chart for the reference flow 
@@ -146,7 +155,7 @@ void loop()
       
       Serial.flush();   // flush out buffer
       count = 0;
-   // }
+    //}
     
     if (watchdogTimer++ > 10)
     {
@@ -156,11 +165,12 @@ void loop()
     }
       
   } //end of timed loop
-
+  
+  
+  
   if((millis() - oldtime1)  >= adjust_time) //shut the valve off. may not be needed??
-  {
     digitalWrite(valvePin, 0); //shut the valve off 
-  }
+  
   
   
     //****************************************************************************************
@@ -206,4 +216,3 @@ void pulseCounter()
   //pulseCount++;
   PPMReader.on_trigger();
 }
-
