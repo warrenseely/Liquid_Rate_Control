@@ -10,10 +10,10 @@
     else bitClear(PORTB, 0); 
     if (bitRead(relay,4)) bitSet(PORTB, 1); //Digital Pin 9
     else bitClear(PORTB, 1); 
-    if (bitRead(relay,5)) bitSet(PORTD, 3); //analog pin A6
-    else bitClear(PORTD, 3); 
-    if (bitRead(relay,6)) bitSet(PORTC, 4); //analog Pin A4
-    else bitClear(PORTC, 4); 
-    if (bitRead(relay,7)) bitSet(PORTC, 5); //Analog Pin A5
-    else bitClear(PORTC, 5); 
+    if (bitRead(relay,5)) bitSet(PORTB, 2); //Digital Pin 10
+    else bitClear(PORTB, 2); 
+    if (bitRead(relay,6)) bitSet(PORTB, 3); //analog Pin A4
+    else bitClear(PORTB, 3); 
+    if (bitRead(relay,7)) bitSet(PORTB, 4); //Analog Pin A5
+    else bitClear(PORTB, 4); 
   }
