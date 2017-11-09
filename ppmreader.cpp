@@ -10,7 +10,7 @@
 //TODO should this be configurable by the caller?
 //This sets up a moving average so that what was seen
 //before is less important.
-static const double coeff = 0.10;
+static const double coeff = 0.10;//0.10
 
 void PPMReader::on_trigger(void)
 {
@@ -104,8 +104,8 @@ PPMReader::PPMReader ()
 	totalpulses = 0;
 
 	//default values that can be overridden
-	ppm_cutoff = 50;
-	zero_time = 1000; 
+	ppm_cutoff = 50; //50
+	zero_time = 1000; //1000
 	record = false;
 	reset();
 }
